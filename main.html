@@ -170,6 +170,26 @@
             background: #4caf50; color: white; border: none; padding: 14px 30px;
             font-size: 20px; border-radius: 10px; cursor: pointer; margin-top: 15px;
         }
+        .weed {
+            position: absolute; width: 12.5%; height: 12.5%;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 36px; z-index: 6; cursor: pointer;
+            animation: weedPop 0.3s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .weed::after {
+            content: "+$5"; position: absolute; bottom: -2px;
+            font-size: 11px; font-weight: bold;
+            background: #388e3c; color: white; padding: 2px 5px; border-radius: 5px;
+        }
+        .weed:active { transform: scale(1.3); }
+        @keyframes weedPop { 0%{transform:scale(0);opacity:0} 70%{transform:scale(1.2)} 100%{transform:scale(1);opacity:1} }
+        .coin-float {
+            position: fixed; pointer-events: none;
+            font-size: 22px; font-weight: bold; color: #388e3c;
+            z-index: 999; animation: coinUp 1s ease forwards;
+        }
+        @keyframes coinUp { 0%{opacity:1;transform:translateY(0)} 100%{opacity:0;transform:translateY(-60px)} }
     </style>
 </head>
 <body>
@@ -434,7 +454,79 @@
         window.onload = function() {
             loadGame();
             startPetRoaming();
+            startWeedSystem();
+            syncPetEmoji();
         };
+
+        // 同步寵物 emoji
+        function syncPetEmoji() {
+            const gs = JSON.parse(localStorage.getItem('AC_Save_' + currentUser) || '{}');
+            if (gs.petEmoji) {
+                document.getElementById('obj-pet').innerText = gs.petEmoji;
+            }
+        }
+
+        // 雜草系統
+        const WEED_EMOJIS = ['🌿','🌱','🍀','☘️','🌾'];
+        let weeds = [];
+
+        function spawnWeed() {
+            if (weeds.length >= 3) return;
+
+            // 找空格
+            const occupied = new Set();
+            occupied.add(`${gameState.playerGridX},${gameState.playerGridY}`);
+            Object.values(itemPositions).forEach(p => occupied.add(`${p.x},${p.y}`));
+            weeds.forEach(w => occupied.add(`${w.gx},${w.gy}`));
+
+            let gx, gy, tries = 0;
+            do {
+                gx = Math.floor(Math.random() * 8);
+                gy = Math.floor(Math.random() * 8);
+                tries++;
+            } while (occupied.has(`${gx},${gy}`) && tries < 30);
+            if (tries >= 30) return;
+
+            const id = 'weed_' + Date.now();
+            const el = document.createElement('div');
+            el.className = 'weed';
+            el.id = id;
+            el.innerText = WEED_EMOJIS[Math.floor(Math.random() * WEED_EMOJIS.length)];
+            el.style.left = (gx * 12.5) + '%';
+            el.style.top  = (gy * 12.5) + '%';
+            el.addEventListener('click',    () => collectWeed(id, el));
+            el.addEventListener('touchend', (e) => { e.preventDefault(); collectWeed(id, el); }, { passive: false });
+            document.getElementById('gameStage').appendChild(el);
+            weeds.push({ id, gx, gy });
+        }
+
+        function collectWeed(id, el) {
+            const rect = el.getBoundingClientRect();
+            weeds = weeds.filter(w => w.id !== id);
+            el.remove();
+            // 金錢
+            const key = 'AC_Save_' + currentUser;
+            const gs = JSON.parse(localStorage.getItem(key) || '{}');
+            gs.money = (gs.money || 0) + 5;
+            gameState.money = gs.money;
+            localStorage.setItem(key, JSON.stringify(gs));
+            document.getElementById('lblMoney').innerText = gs.money;
+            // 特效
+            const coin = document.createElement('div');
+            coin.className = 'coin-float';
+            coin.innerText = '+$5 🌿';
+            coin.style.left = rect.left + 'px';
+            coin.style.top  = rect.top  + 'px';
+            document.body.appendChild(coin);
+            setTimeout(() => coin.remove(), 1000);
+        }
+
+        function startWeedSystem() {
+            // 第一株雜草延遲5秒出現（測試方便）
+            setTimeout(spawnWeed, 5000);
+            // 之後每15分鐘一株
+            setInterval(spawnWeed, 15 * 60 * 1000);
+        }
     </script>
 </body>
 </html>
