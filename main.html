@@ -10,38 +10,38 @@
             font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
             background-color: #e8f5e9;
             margin: 0;
-            padding: 10px;
+            padding: 12px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            height: 100dvh;
-            overflow: hidden;
+            min-height: 100dvh;
+            overflow-x: hidden;
         }
         
         .top-bar {
             width: 100%;
-            max-width: 600px;
+            max-width: 720px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             background-color: #fff;
-            padding: 10px 15px;
+            padding: 12px 18px;
             border: 4px solid #8d6e63;
             border-radius: 15px;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
-        .user-info { font-size: 16px; font-weight: bold; color: #5d4037; }
-        .money-box { font-size: 18px; font-weight: bold; color: #e65100; background: #ffe0b2; padding: 5px 12px; border-radius: 20px; border: 2px solid #f57c00; }
-        .btn-top { background: #bcaaa4; color: white; border: 2px solid #5d4037; border-radius: 8px; padding: 6px 12px; font-weight: bold; cursor: pointer; }
+        .user-info { font-size: 18px; font-weight: bold; color: #5d4037; }
+        .money-box { font-size: 20px; font-weight: bold; color: #e65100; background: #ffe0b2; padding: 6px 14px; border-radius: 20px; border: 2px solid #f57c00; }
+        .btn-top { background: #bcaaa4; color: white; border: 2px solid #5d4037; border-radius: 8px; padding: 8px 14px; font-weight: bold; cursor: pointer; font-size: 15px; }
         
         .char-panel {
             width: 100%;
-            max-width: 600px;
+            max-width: 720px;
             background: #fff8e1;
             border: 4px solid #bcaaa4;
             border-radius: 15px;
-            padding: 10px;
-            margin-bottom: 8px;
+            padding: 10px 14px;
+            margin-bottom: 10px;
             display: flex;
             gap: 10px;
             overflow-x: auto;
@@ -50,20 +50,20 @@
             flex: 0 0 auto;
             border: 3px solid #d7ccc8;
             border-radius: 12px;
-            padding: 6px 12px;
+            padding: 8px 14px;
             text-align: center;
             cursor: pointer;
             background: white;
-            min-width: 75px;
+            min-width: 80px;
         }
         .char-thumb.active { border-color: #ff9800; background: #fff3e0; }
-        .char-avatar { font-size: 26px; }
-        .char-name { font-size: 12px; font-weight: bold; color: #5d4037; margin-top: 2px; }
+        .char-avatar { font-size: 30px; }
+        .char-name { font-size: 13px; font-weight: bold; color: #5d4037; margin-top: 3px; }
 
         .game-stage {
             position: relative;
             width: 100%;
-            max-width: 600px;
+            max-width: 720px;
             aspect-ratio: 1;
             background-color: #8bc34a;
             background-image: 
@@ -73,6 +73,7 @@
             border: 6px solid #4caf50;
             border-radius: 18px;
             box-shadow: inset 0 0 20px rgba(0,0,0,0.15);
+            touch-action: none;
         }
 
         .world-item {
@@ -82,32 +83,55 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 35px;
+            font-size: 40px;
             z-index: 5;
             transition: transform 0.2s, top 0.2s ease-out, left 0.2s ease-out;
+            cursor: pointer;
         }
         .world-item::after {
             content: attr(data-label);
             position: absolute;
             bottom: -2px;
-            font-size: 10px;
+            font-size: 11px;
             font-weight: bold;
             background: rgba(0,0,0,0.6);
             color: white;
-            padding: 1px 4px;
+            padding: 2px 5px;
             border-radius: 5px;
             white-space: nowrap;
         }
         .world-item.highlight {
-            transform: scale(1.25);
-            filter: drop-shadow(0 0 10px #fff200);
+            transform: scale(1.3);
+            filter: drop-shadow(0 0 12px #fff200);
+            animation: pulse 0.8s infinite alternate;
+        }
+        @keyframes pulse {
+            from { filter: drop-shadow(0 0 8px #fff200); }
+            to   { filter: drop-shadow(0 0 18px #ff9800); }
+        }
+
+        /* 靠近提示泡泡 */
+        .world-item.highlight::before {
+            content: "點我互動！";
+            position: absolute;
+            top: -28px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ff5722;
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 3px 7px;
+            border-radius: 8px;
+            white-space: nowrap;
+            z-index: 20;
         }
 
         #playerCharacter {
             position: absolute;
             width: 12.5%;
             height: 12.5%;
-            font-size: 45px;
+            font-size: 50px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -122,11 +146,11 @@
             content: "你";
             position: absolute;
             top: -5px;
-            font-size: 10px;
+            font-size: 11px;
             font-weight: bold;
             background: #ff5722;
             color: white;
-            padding: 1px 4px;
+            padding: 2px 5px;
             border-radius: 5px;
         }
 
@@ -140,11 +164,11 @@
         }
         .modal-content {
             background: white; border: 6px solid #5d4037; border-radius: 20px;
-            padding: 25px; width: 90%; max-width: 450px; text-align: center;
+            padding: 30px; width: 90%; max-width: 500px; text-align: center;
         }
         .modal-btn {
-            background: #4caf50; color: white; border: none; padding: 12px 25px;
-            font-size: 18px; border-radius: 10px; cursor: pointer; margin-top: 15px;
+            background: #4caf50; color: white; border: none; padding: 14px 30px;
+            font-size: 20px; border-radius: 10px; cursor: pointer; margin-top: 15px;
         }
     </style>
 </head>
@@ -163,17 +187,17 @@
         
         <div id="playerCharacter">🐻</div>
         
-        <div class="world-item" id="obj-owl" data-label="傅達🦉" style="top: 12.5%; left: 25%;">🦉</div>
-        <div class="world-item" id="obj-pet" data-label="小貓寵物🐱" style="top: 25%; left: 62.5%;">🐱</div>
-        <div class="world-item" id="obj-arcade" data-label="遊戲機🕹️" style="top: 62.5%; left: 12.5%;">🕹️</div>
-        <div class="world-item" id="obj-house" data-label="我的房子🏡" style="top: 62.5%; left: 62.5%;">🏡</div>
+        <div class="world-item" id="obj-owl" data-label="傅達🦉" data-key="owl">🦉</div>
+        <div class="world-item" id="obj-pet" data-label="小貓寵物🐱" data-key="pet">🐱</div>
+        <div class="world-item" id="obj-arcade" data-label="遊戲機🕹️" data-key="arcade">🕹️</div>
+        <div class="world-item" id="obj-house" data-label="我的房子🏡" data-key="house">🏡</div>
 
     </div>
 
     <div class="modal" id="quizModal">
         <div class="modal-content">
             <h2 style="color: #795548;">🦉 傅達的學術問答</h2>
-            <p id="quizText" style="font-size: 18px; margin: 20px 0; color: #333; font-weight: bold;"></p>
+            <p id="quizText" style="font-size: 20px; margin: 20px 0; color: #333; font-weight: bold;"></p>
             <button class="modal-btn" onclick="closeQuiz()">太棒了！</button>
         </div>
     </div>
@@ -194,29 +218,28 @@
         ];
 
         let itemPositions = {
-            owl: { x: 2, y: 1 },
-            pet: { x: 5, y: 2 },
+            owl:    { x: 2, y: 1 },
+            pet:    { x: 5, y: 2 },
             arcade: { x: 1, y: 5 },
-            house: { x: 5, y: 5 }
+            house:  { x: 5, y: 5 }
         };
 
         let gameState = {
             money: 100,
             selectedCharId: 1,
-            playerGridX: 3, 
-            playerGridY: 3  
+            playerGridX: 3,
+            playerGridY: 3
         };
+
+        // 記錄目前哪些物件在範圍內（高亮中）
+        let nearbyItems = new Set();
 
         function loadGame() {
             const saved = localStorage.getItem('AC_Save_' + currentUser);
-            if (saved) {
-                gameState = JSON.parse(saved);
-            }
+            if (saved) gameState = JSON.parse(saved);
             document.getElementById('lblMoney').innerText = gameState.money;
             renderCharPanel();
             updatePlayerIcon();
-            
-            // 使用純百分比定位，就算寬高還沒跑出來也絕對不會出錯卡死
             alignToGrid("playerCharacter", gameState.playerGridX, gameState.playerGridY);
             alignAllObjects();
         }
@@ -232,10 +255,7 @@
             characters.forEach(char => {
                 const thumb = document.createElement('div');
                 thumb.className = `char-thumb ${gameState.selectedCharId === char.id ? 'active' : ''}`;
-                thumb.innerHTML = `
-                    <div class="char-avatar">${char.icon}</div>
-                    <div class="char-name">${char.name}</div>
-                `;
+                thumb.innerHTML = `<div class="char-avatar">${char.icon}</div><div class="char-name">${char.name}</div>`;
                 thumb.onclick = () => {
                     gameState.selectedCharId = char.id;
                     renderCharPanel();
@@ -255,94 +275,98 @@
             const el = document.getElementById(elementId);
             if (!el) return;
             el.style.left = (gx * 12.5) + '%';
-            el.style.top = (gy * 12.5) + '%';
+            el.style.top  = (gy * 12.5) + '%';
         }
 
         function alignAllObjects() {
-            alignToGrid("obj-owl", itemPositions.owl.x, itemPositions.owl.y);
-            alignToGrid("obj-pet", itemPositions.pet.x, itemPositions.pet.y);
+            alignToGrid("obj-owl",    itemPositions.owl.x,    itemPositions.owl.y);
+            alignToGrid("obj-pet",    itemPositions.pet.x,    itemPositions.pet.y);
             alignToGrid("obj-arcade", itemPositions.arcade.x, itemPositions.arcade.y);
-            alignToGrid("obj-house", itemPositions.house.x, itemPositions.house.y);
+            alignToGrid("obj-house",  itemPositions.house.x,  itemPositions.house.y);
         }
 
         // --- 拖曳系統 ---
         const playerEl = document.getElementById('playerCharacter');
-        const stageEl = document.getElementById('gameStage');
+        const stageEl  = document.getElementById('gameStage');
         let isDragging = false;
         let startX, startY, initLeft, initTop;
 
-        playerEl.addEventListener('mousedown', dragStart);
+        playerEl.addEventListener('mousedown',  dragStart);
         playerEl.addEventListener('touchstart', dragStart, { passive: false });
 
         function dragStart(e) {
             isDragging = true;
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
             const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            
             startX = clientX;
             startY = clientY;
             initLeft = playerEl.offsetLeft;
-            initTop = playerEl.offsetTop;
-            
-            document.addEventListener('mousemove', dragMove);
-            document.addEventListener('touchmove', dragMove, { passive: false });
-            document.addEventListener('mouseup', dragEnd);
-            document.addEventListener('touchend', dragEnd);
+            initTop  = playerEl.offsetTop;
+            document.addEventListener('mousemove',  dragMove);
+            document.addEventListener('touchmove',  dragMove, { passive: false });
+            document.addEventListener('mouseup',    dragEnd);
+            document.addEventListener('touchend',   dragEnd);
         }
 
         function dragMove(e) {
             if (!isDragging) return;
-            if (e.cancelable) e.preventDefault(); 
-            
+            if (e.cancelable) e.preventDefault();
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
             const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            
-            const dx = clientX - startX;
-            const dy = clientY - startY;
-            
-            playerEl.style.left = (initLeft + dx) + 'px';
-            playerEl.style.top = (initTop + dy) + 'px';
+            playerEl.style.left = (initLeft + clientX - startX) + 'px';
+            playerEl.style.top  = (initTop  + clientY - startY) + 'px';
         }
 
         function dragEnd(e) {
             if (!isDragging) return;
             isDragging = false;
-            
             document.removeEventListener('mousemove', dragMove);
             document.removeEventListener('touchmove', dragMove);
-            
-            const cellWidth = stageEl.clientWidth / 8;
-            const cellHeight = stageEl.clientHeight / 8;
-            
-            let targetX = Math.round(playerEl.offsetLeft / cellWidth);
-            let targetY = Math.round(playerEl.offsetTop / cellHeight);
-            
+
+            const cellW = stageEl.clientWidth  / 8;
+            const cellH = stageEl.clientHeight / 8;
+            let targetX = Math.round(playerEl.offsetLeft / cellW);
+            let targetY = Math.round(playerEl.offsetTop  / cellH);
             targetX = Math.max(0, Math.min(targetX, 7));
             targetY = Math.max(0, Math.min(targetY, 7));
-            
+
             gameState.playerGridX = targetX;
             gameState.playerGridY = targetY;
             alignToGrid("playerCharacter", targetX, targetY);
-            
-            checkProximityInteraction(targetX, targetY);
+
+            checkProximity(targetX, targetY);
         }
 
-        function checkProximityInteraction(px, py) {
+        // 只做高亮，不自動觸發
+        function checkProximity(px, py) {
             document.querySelectorAll('.world-item').forEach(el => el.classList.remove('highlight'));
+            nearbyItems.clear();
 
             Object.keys(itemPositions).forEach(key => {
-                const pos = itemPositions[key];
+                const pos  = itemPositions[key];
                 const diffX = Math.abs(pos.x - px);
                 const diffY = Math.abs(pos.y - py);
-                
-                // 只要角色被拉到目標物件的相鄰格（1格之內），即刻高亮並觸發殼
                 if (diffX <= 1 && diffY <= 1) {
                     const itemDom = document.getElementById(`obj-${key}`);
                     if (itemDom) itemDom.classList.add('highlight');
-                    
-                    setTimeout(() => { triggerAction(key); }, 150);
+                    nearbyItems.add(key);
                 }
             });
+        }
+
+        // 點擊物件才觸發
+        document.querySelectorAll('.world-item').forEach(el => {
+            el.addEventListener('click',      () => handleItemClick(el.dataset.key));
+            el.addEventListener('touchend',   (e) => { e.preventDefault(); handleItemClick(el.dataset.key); }, { passive: false });
+        });
+
+        function handleItemClick(key) {
+            if (!nearbyItems.has(key)) {
+                // 不在範圍內，給提示
+                showToast('先走過去靠近它喔！');
+                return;
+            }
+            triggerAction(key);
         }
 
         function triggerAction(objectName) {
@@ -367,28 +391,44 @@
             document.getElementById('quizModal').style.display = 'none';
         }
 
+        // 小提示 Toast
+        function showToast(msg) {
+            let toast = document.getElementById('toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'toast';
+                toast.style.cssText = `
+                    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+                    background: rgba(0,0,0,0.75); color: white; padding: 10px 22px;
+                    border-radius: 20px; font-size: 16px; z-index: 999;
+                    transition: opacity 0.4s;
+                `;
+                document.body.appendChild(toast);
+            }
+            toast.innerText = msg;
+            toast.style.opacity = '1';
+            clearTimeout(toast._timer);
+            toast._timer = setTimeout(() => { toast.style.opacity = '0'; }, 1800);
+        }
+
         function startPetRoaming() {
             setInterval(() => {
-                const directions = [{x:0, y:1}, {x:0, y:-1}, {x:1, y:0}, {x:-1, y:0}];
-                const randomMove = directions[Math.floor(Math.random() * directions.length)];
-                
-                let nextX = itemPositions.pet.x + randomMove.x;
-                let nextY = itemPositions.pet.y + randomMove.y;
-                
-                if (nextX >= 0 && nextX <= 7 && nextY >= 0 && nextY <= 7) {
-                    const isOverlap = (nextX === itemPositions.owl.x && nextY === itemPositions.owl.y) ||
-                                      (nextX === itemPositions.arcade.x && nextY === itemPositions.arcade.y) ||
-                                      (nextX === itemPositions.house.x && nextY === itemPositions.house.y);
-                    
-                    if (!isOverlap) {
-                        itemPositions.pet.x = nextX;
-                        itemPositions.pet.y = nextY;
-                        alignToGrid("obj-pet", nextX, nextY);
-                        
-                        checkProximityInteraction(gameState.playerGridX, gameState.playerGridY);
+                const directions = [{x:0,y:1},{x:0,y:-1},{x:1,y:0},{x:-1,y:0}];
+                const move = directions[Math.floor(Math.random() * directions.length)];
+                let nx = itemPositions.pet.x + move.x;
+                let ny = itemPositions.pet.y + move.y;
+                if (nx >= 0 && nx <= 7 && ny >= 0 && ny <= 7) {
+                    const overlap = (nx === itemPositions.owl.x    && ny === itemPositions.owl.y) ||
+                                    (nx === itemPositions.arcade.x  && ny === itemPositions.arcade.y) ||
+                                    (nx === itemPositions.house.x   && ny === itemPositions.house.y);
+                    if (!overlap) {
+                        itemPositions.pet.x = nx;
+                        itemPositions.pet.y = ny;
+                        alignToGrid("obj-pet", nx, ny);
+                        checkProximity(gameState.playerGridX, gameState.playerGridY);
                     }
                 }
-            }, 3000); 
+            }, 3000);
         }
 
         window.onload = function() {
