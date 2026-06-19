@@ -320,8 +320,12 @@
             const clientY = e.touches ? e.touches[0].clientY : e.clientY;
             startX = clientX;
             startY = clientY;
-            initLeft = playerEl.offsetLeft;
-            initTop  = playerEl.offsetTop;
+            // 用格子座標換算成像素，避免百分比定位造成 offsetLeft 不準
+            initLeft = gameState.playerGridX * stageEl.clientWidth  / 8;
+            initTop  = gameState.playerGridY * stageEl.clientHeight / 8;
+            // 同步成 px 定位，讓拖曳更順
+            playerEl.style.left = initLeft + 'px';
+            playerEl.style.top  = initTop  + 'px';
             document.addEventListener('mousemove',  dragMove);
             document.addEventListener('touchmove',  dragMove, { passive: false });
             document.addEventListener('mouseup',    dragEnd);
