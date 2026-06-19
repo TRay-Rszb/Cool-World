@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>動物森友會 2D - 選擇帳號</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
+            background: #e8f5e9;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100dvh;
+            padding: 20px;
+        }
+        .box {
+            border: 4px solid #5d4037;
+            background: white;
+            padding: 30px 40px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+        }
+        h1 { color: #3e2723; margin-bottom: 5px; }
+        .subtitle { color: #8d6e63; margin-bottom: 25px; font-size: 14px; }
+
+        .accounts { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+        .account-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 18px;
+            background: #fff8e1;
+            border: 3px solid #d7ccc8;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            color: #4e342e;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .account-btn:hover, .account-btn.selected {
+            border-color: #ff9800;
+            background: #fff3e0;
+        }
+        .account-icon { font-size: 28px; }
+        .account-name { flex: 1; text-align: left; }
+
+        .divider { border: none; border-top: 2px dashed #d7ccc8; margin: 15px 0; }
+
+        .new-account { display: flex; gap: 8px; }
+        .new-account input {
+            flex: 1;
+            padding: 10px 14px;
+            font-size: 16px;
+            border: 3px solid #d7ccc8;
+            border-radius: 10px;
+            outline: none;
+            font-family: inherit;
+        }
+        .new-account input:focus { border-color: #ff9800; }
+        .new-account button {
+            padding: 10px 16px;
+            background: #8d6e63;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .enter-btn {
+            width: 100%;
+            margin-top: 20px;
+            padding: 14px;
+            font-size: 20px;
+            font-weight: bold;
+            background: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            opacity: 0.4;
+            transition: opacity 0.2s;
+        }
+        .enter-btn.active { opacity: 1; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h1>🌿 歡迎來到我的島嶼</h1>
+        <p class="subtitle">請選擇你的帳號，或新增一個</p>
+
+        <div class="accounts" id="accountList"></div>
+
+        <hr class="divider">
+
+        <div class="new-account">
+            <input type="text" id="newNameInput" placeholder="輸入新帳號名稱" maxlength="10">
+            <button onclick="addAccount()">➕ 新增</button>
+        </div>
+
+        <button class="enter-btn" id="enterBtn" onclick="enterGame()" disabled>🏝️ 進入島嶼</button>
+    </div>
+
+    <script>
+        const ACCOUNTS_KEY = 'AC_Accounts';
+        let selectedUser = null;
+
+        const defaultAccounts = ['小熊島主', '小狗探險家', '小貓管理員'];
+
+        function getAccounts() {
+            const saved = localStorage.getItem(ACCOUNTS_KEY);
+            if (saved) return JSON.parse(saved);
+            localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(defaultAccounts));
+            return defaultAccounts;
+        }
+
+        function saveAccounts(list) {
+            localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(list));
+        }
+
+        const icons = ['🐻','🐶','🐱','🐰','🦌','🐑','🐿️','🦆','🐸','🐼'];
+
+        function renderAccounts() {
+            const list = getAccounts();
+            const container = document.getElementById('accountList');
+            container.innerHTML = '';
+            list.forEach((name, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'account-btn' + (name === selectedUser ? ' selected' : '');
+                btn.innerHTML = `
+                    <span class="account-icon">${icons[idx % icons.length]}</span>
+                    <span class="account-name">${name}</span>
+                `;
+                btn.onclick = () => selectUser(name);
+                container.appendChild(btn);
+            });
+        }
+
+        function selectUser(name) {
+            selectedUser = name;
+            renderAccounts();
+            const btn = document.getElementById('enterBtn');
+            btn.disabled = false;
+            btn.classList.add('active');
+        }
+
+        function addAccount() {
+            const input = document.getElementById('newNameInput');
+            const name = input.value.trim();
+            if (!name) return alert('請輸入帳號名稱！');
+            const list = getAccounts();
+            if (list.includes(name)) return alert('此帳號名稱已存在！');
+            list.push(name);
+            saveAccounts(list);
+            input.value = '';
+            selectUser(name);
+            renderAccounts();
+        }
+
+        function enterGame() {
+            if (!selectedUser) return;
+            sessionStorage.setItem('AC_Current_User', selectedUser);
+            window.location.href = 'main.html';
+        }
+
+        document.getElementById('newNameInput').addEventListener('keydown', e => {
+            if (e.key === 'Enter') addAccount();
+        });
+
+        renderAccounts();
+    </script>
+</body>
+</html>
