@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>傅達的學術挑戰</title>
+    <style>
+        * { box-sizing: border-box; -webkit-user-select: none; user-select: none; }
+        body {
+            font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
+            background: #f1f8e9;
+            margin: 0; padding: 12px;
+            display: flex; flex-direction: column; align-items: center;
+            min-height: 100dvh;
+        }
+
+        .top-bar {
+            width: 100%; max-width: 600px;
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 20px;
+        }
+        .btn-back { background: #5d4037; color: white; border: none; border-radius: 10px; padding: 10px 18px; font-size: 16px; cursor: pointer; font-weight: bold; }
+        .money-box { font-size: 18px; font-weight: bold; color: #e65100; background: #ffe0b2; padding: 8px 14px; border-radius: 12px; border: 2px solid #f57c00; }
+
+        .owl-panel {
+            background: white; border: 4px solid #795548; border-radius: 20px;
+            width: 100%; max-width: 600px; padding: 20px; text-align: center;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+        .owl-icon { font-size: 70px; margin-bottom: 10px; }
+        .owl-speech {
+            background: #fff8e1; border: 3px solid #ffca28; border-radius: 15px;
+            padding: 15px; font-size: 18px; color: #5d4037; font-weight: bold;
+            margin-bottom: 20px; min-height: 80px; display: flex; align-items: center; justify-content: center;
+        }
+
+        /* 準備畫面按鈕 */
+        .ready-actions { display: flex; flex-direction: column; gap: 12px; }
+        .btn-action {
+            padding: 16px; font-size: 20px; font-weight: bold; color: white;
+            border: none; border-radius: 15px; cursor: pointer; transition: transform 0.1s;
+        }
+        .btn-action:active { transform: scale(0.95); }
+        .btn-free { background: #4caf50; }
+        .btn-pay { background: #ff9800; }
+        .btn-disabled { background: #b0bec5; cursor: not-allowed; }
+
+        .cooldown-text { color: #d32f2f; font-weight: bold; font-size: 16px; margin-top: 10px; }
+
+        /* 問答畫面 */
+        #quizSection { display: none; }
+        .question-box { font-size: 22px; color: #333; font-weight: bold; margin-bottom: 20px; }
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .btn-option {
+            background: #e3f2fd; border: 3px solid #64b5f6; border-radius: 12px;
+            padding: 16px 10px; font-size: 18px; font-weight: bold; color: #1565c0;
+            cursor: pointer; transition: background 0.2s;
+        }
+        .btn-option:active { background: #bbdefb; }
+        .btn-option.correct { background: #c8e6c9; border-color: #4caf50; color: #2e7d32; }
+        .btn-option.wrong { background: #ffcdd2; border-color: #f44336; color: #c62828; }
+        
+        .progress-text { margin-bottom: 10px; color: #795548; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="top-bar">
+    <button class="btn-back" onclick="leaveGame()">↩ 返回島嶼</button>
+    <div class="money-box">💰 $<span id="lblMoney">0</span></div>
+</div>
+
+<div class="owl-panel">
+    <div class="owl-icon">🦉</div>
+    <div class="owl-speech" id="owlSpeech">
+        呼呼！歡迎來到我的學術測驗！<br>答對一題可以獲得 $5 喔！準備好接受挑戰了嗎？
+    </div>
+
+    <div id="readySection" class="ready-actions">
+        <div id="cooldownTimer" class="cooldown-text" style="display: none;">下次免費測驗冷卻中：<span id="timeRemaining">--:--</span></div>
+        <button id="btnFreePlay" class="btn-action btn-free" onclick="startQuiz(false)">🎯 開始免費挑戰！</button>
+        <button id="btnPayPlay" class="btn-action btn-pay" style="display: none;" onclick="startQuiz(true)">💎 花費 $5 提早挑戰</button>
+    </div>
+
+    <div id="quizSection">
+        <div class="progress-text">第 <span id="currentQNum">1</span> / 3 題</div>
+        <div class="question-box" id="questionText">這裡顯示題目？</div>
+        <div class="options-grid" id="optionsGrid">
+            </div>
+    </div>
+</div>
+
+<script>
+    const currentUser = sessionStorage.getItem('AC_Current_User') || 'Guest';
+    const SAVE_KEY = 'AC_Save_' + currentUser;
+    
+    let gameState = { money: 0, lastQuizTime: 0 };
+    let currentQuiz = [];
+    let currentQIndex = 0;
+    let earnedMoney = 0;
+    let cooldownInterval;
+
+    // 50 題題庫 (國小程度)
+    const QUESTION_BANK = [
+        { q: "太陽通常是從哪個方向升起？", options: ["東邊", "西邊", "南邊", "北邊"], ans: 0 },
+        { q: "水結成冰的溫度大約是攝氏幾度？", options: ["100度", "50度", "0度", "10度"], ans: 2 },
+        { q: "哪一種動物是哺乳類，但卻生活在海裡？", options: ["鯊魚", "海龜", "鯨魚", "企鵝"], ans: 2 },
+        { q: "一年有幾個季節？", options: ["2個", "4個", "6個", "12個"], ans: 1 },
+        { q: "青蛙小時候叫什麼名字？", options: ["小青蛙", "蝌蚪", "毛毛蟲", "幼蟲"], ans: 1 },
+        { q: "哪一個星球是我們居住的地方？", options: ["火星", "金星", "地球", "木星"], ans: 2 },
+        { q: "植物需要什麼才能行光合作用製造養分？", options: ["陽光", "可樂", "鹽巴", "汽油"], ans: 0 },
+        { q: "台灣最高的山是哪一座？", options: ["阿里山", "陽明山", "玉山", "合歡山"], ans: 2 },
+        { q: "毛毛蟲長大後會變成什麼？", options: ["蒼蠅", "蜜蜂", "蝴蝶", "蜘蛛"], ans: 2 },
+        { q: "一天總共有多少個小時？", options: ["12小時", "24小時", "48小時", "60小時"], ans: 1 },
+        { q: "哪一種交通工具是在鐵軌上行行的？", options: ["飛機", "汽車", "火車", "輪船"], ans: 2 },
+        { q: "被稱為「百獸之王」的動物是？", options: ["大象", "老虎", "獅子", "長頸鹿"], ans: 2 },
+        { q: "哪一種昆蟲會吐絲結繭？", options: ["螞蟻", "蠶寶寶", "螢火蟲", "瓢蟲"], ans: 1 },
+        { q: "我們呼吸時，吸進去對身體最重要的氣體是？", options: ["二氧化碳", "氧氣", "氫氣", "氮氣"], ans: 1 },
+        { q: "彩虹通常有幾種顏色？", options: ["3種", "5種", "7種", "9種"], ans: 2 },
+        { q: "哪一個不是水果？", options: ["蘋果", "香蕉", "高麗菜", "西瓜"], ans: 2 },
+        { q: "計算時間的單位，一分鐘有幾秒？", options: ["10秒", "30秒", "60秒", "100秒"], ans: 2 },
+        { q: "冰塊融化後會變成什麼狀態？", options: ["氣體", "液體", "固體", "電漿"], ans: 1 },
+        { q: "中秋節我們通常會吃什麼？", options: ["粽子", "湯圓", "月餅", "水餃"], ans: 2 },
+        { q: "哪一種動物的脖子最長？", options: ["鴕鳥", "長頸鹿", "斑馬", "駱駝"], ans: 1 },
+        { q: "地球上最多的液體是什麼？", options: ["牛奶", "海水", "汽水", "果汁"], ans: 1 },
+        { q: "指南針的指針總是指向哪個方向？", options: ["東方", "南方", "西方", "北方"], ans: 3 },
+        { q: "哪一個數字代表「沒有」？", options: ["1", "0", "10", "100"], ans: 1 },
+        { q: "白天時天空中最亮的星體是？", options: ["月亮", "星星", "太陽", "流星"], ans: 2 },
+        { q: "哪一種鳥類不會飛，但游泳游得很好？", options: ["老鷹", "鴿子", "企鵝", "麻雀"], ans: 2 },
+        { q: "三角形有幾個邊？", options: ["1個", "2個", "3個", "4個"], ans: 2 },
+        { q: "國慶日是幾月幾號？", options: ["1月1日", "10月10日", "12月25日", "4月4日"], ans: 1 },
+        { q: "哪種昆蟲會釀蜂蜜？", options: ["蜜蜂", "蝴蝶", "螞蟻", "蜻蜓"], ans: 0 },
+        { q: "樹木的葉子通常是什麼顏色？", options: ["紅色", "藍色", "綠色", "黑色"], ans: 2 },
+        { q: "哪個行星有美麗的行星環？", options: ["地球", "土星", "火星", "水星"], ans: 1 },
+        { q: "下雨後天空中可能會出現什麼？", options: ["彩虹", "極光", "星星", "雪花"], ans: 0 },
+        { q: "我們用什麼器官來看東西？", options: ["耳朵", "鼻子", "嘴巴", "眼睛"], ans: 3 },
+        { q: "什麼動物會用鼻子噴水？", options: ["大象", "獅子", "猴子", "兔子"], ans: 0 },
+        { q: "一星期有幾天？", options: ["5天", "6天", "7天", "8天"], ans: 2 },
+        { q: "哪個季節通常會下雪？", options: ["春季", "夏季", "秋季", "冬季"], ans: 3 },
+        { q: "斑馬身上的條紋是什麼顏色？", options: ["黑白相間", "紅白相間", "藍黃相間", "全黑"], ans: 0 },
+        { q: "我們喝的牛奶通常是哪種動物擠出來的？", options: ["牛", "羊", "馬", "豬"], ans: 0 },
+        { q: "什麼交通工具可以在天上飛？", options: ["汽車", "火車", "飛機", "腳踏車"], ans: 2 },
+        { q: "貓咪最喜歡抓什麼動物？", options: ["狗", "老鼠", "大象", "獅子"], ans: 1 },
+        { q: "哪個字代表最大的數字？", options: ["百", "千", "萬", "十"], ans: 2 },
+        { q: "夜晚天空中會發光，還會變形的是什麼？", options: ["太陽", "雲朵", "月亮", "彩虹"], ans: 2 },
+        { q: "什麼動物走路最慢？", options: ["豹", "烏龜", "馬", "狗"], ans: 1 },
+        { q: "我們用什麼工具來量身高？", options: ["體重計", "溫度計", "尺", "時鐘"], ans: 2 },
+        { q: "什麼樂器有黑白相間的琴鍵？", options: ["吉他", "小提琴", "鋼琴", "長笛"], ans: 2 },
+        { q: "消防車通常是什麼顏色？", options: ["藍色", "黃色", "紅色", "綠色"], ans: 2 },
+        { q: "什麼食物是用米做的？", options: ["麵包", "飯糰", "麵條", "饅頭"], ans: 1 },
+        { q: "沙漠中最常見的動物，背上有駝峰的是？", options: ["馬", "羊", "駱駝", "鹿"], ans: 2 },
+        { q: "什麼花總是向著太陽？", options: ["玫瑰花", "向日葵", "百合花", "梅花"], ans: 1 },
+        { q: "哪個器官負責把血液打到全身？", options: ["胃", "肺", "心臟", "大腦"], ans: 2 },
+        { q: "夏天常常聽到的蟲鳴聲是哪種昆蟲發出的？", options: ["螞蟻", "蟬", "蝴蝶", "瓢蟲"], ans: 1 }
+    ];
+
+    function loadGame() {
+        const saved = localStorage.getItem(SAVE_KEY);
+        if (saved) gameState = JSON.parse(saved);
+        updateMoneyUI();
+        checkCooldown();
+    }
+
+    function saveGame() {
+        localStorage.setItem(SAVE_KEY, JSON.stringify(gameState));
+    }
+
+    function updateMoneyUI() {
+        document.getElementById('lblMoney').innerText = gameState.money;
+    }
+
+    function checkCooldown() {
+        clearInterval(cooldownInterval);
+        const COOLDOWN_MS = 15 * 60 * 1000; // 15分鐘
+        const now = Date.now();
+        const timePassed = now - (gameState.lastQuizTime || 0);
+
+        if (timePassed >= COOLDOWN_MS) {
+            // 可以免費玩
+            document.getElementById('btnFreePlay').style.display = 'block';
+            document.getElementById('btnPayPlay').style.display = 'none';
+            document.getElementById('cooldownTimer').style.display = 'none';
+        } else {
+            // 冷卻中
+            document.getElementById('btnFreePlay').style.display = 'none';
+            document.getElementById('cooldownTimer').style.display = 'block';
+            
+            // 判斷錢夠不夠提早玩
+            const btnPay = document.getElementById('btnPayPlay');
+            btnPay.style.display = 'block';
+            if (gameState.money >= 5) {
+                btnPay.className = 'btn-action btn-pay';
+                btnPay.disabled = false;
+            } else {
+                btnPay.className = 'btn-action btn-disabled';
+                btnPay.disabled = true;
+            }
+
+            // 倒數計時器
+            cooldownInterval = setInterval(() => {
+                const remaining = COOLDOWN_MS - (Date.now() - gameState.lastQuizTime);
+                if (remaining <= 0) {
+                    checkCooldown(); // 時間到重新檢查
+                } else {
+                    const m = Math.floor(remaining / 60000);
+                    const s = Math.floor((remaining % 60000) / 1000);
+                    document.getElementById('timeRemaining').innerText = 
+                        `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                }
+            }, 1000);
+        }
+    }
+
+    function startQuiz(isPaid) {
+        if (isPaid) {
+            if (gameState.money < 5) return;
+            gameState.money -= 5;
+            updateMoneyUI();
+        }
+        
+        // 記錄遊玩時間並存檔
+        gameState.lastQuizTime = Date.now();
+        saveGame();
+        
+        // 隨機抽 3 題
+        let shuffled = [...QUESTION_BANK].sort(() => 0.5 - Math.random());
+        currentQuiz = shuffled.slice(0, 3);
+        currentQIndex = 0;
+        earnedMoney = 0;
+
+        document.getElementById('readySection').style.display = 'none';
+        document.getElementById('quizSection').style.display = 'block';
+        showQuestion();
+    }
+
+    function showQuestion() {
+        const qData = currentQuiz[currentQIndex];
+        document.getElementById('currentQNum').innerText = currentQIndex + 1;
+        document.getElementById('questionText').innerText = qData.q;
+        document.getElementById('owlSpeech').innerText = "請仔細思考，選擇正確的答案喔！";
+
+        const grid = document.getElementById('optionsGrid');
+        grid.innerHTML = '';
+        
+        qData.options.forEach((opt, idx) => {
+            const btn = document.createElement('button');
+            btn.className = 'btn-option';
+            btn.innerText = opt;
+            btn.onclick = () => handleAnswer(idx, btn);
+            grid.appendChild(btn);
+        });
+    }
+
+    function handleAnswer(selectedIndex, btnElement) {
+        // 鎖定所有按鈕避免連點
+        const buttons = document.querySelectorAll('.btn-option');
+        buttons.forEach(b => b.onclick = null);
+
+        const qData = currentQuiz[currentQIndex];
+        if (selectedIndex === qData.ans) {
+            btnElement.classList.add('correct');
+            document.getElementById('owlSpeech').innerText = "太聰明了！完全正確！✨";
+            earnedMoney += 5;
+        } else {
+            btnElement.classList.add('wrong');
+            buttons[qData.ans].classList.add('correct'); // 顯示正確答案
+            document.getElementById('owlSpeech').innerText = "哎呀，答錯了！正確答案是綠色的選項喔！";
+        }
+
+        setTimeout(() => {
+            currentQIndex++;
+            if (currentQIndex < 3) {
+                showQuestion();
+            } else {
+                endQuiz();
+            }
+        }, 2000);
+    }
+
+    function endQuiz() {
+        document.getElementById('quizSection').style.display = 'none';
+        document.getElementById('readySection').style.display = 'flex';
+        
+        if (earnedMoney > 0) {
+            document.getElementById('owlSpeech').innerText = `測驗結束！你總共答對了 ${earnedMoney/5} 題，獲得了 $${earnedMoney}！🦉`;
+            gameState.money += earnedMoney;
+            updateMoneyUI();
+            saveGame();
+        } else {
+            document.getElementById('owlSpeech').innerText = "測驗結束！可惜一題都沒答對，下次再加油喔！🦉";
+        }
+        
+        checkCooldown();
+    }
+
+    function leaveGame() {
+        window.location.href = 'main.html';
+    }
+
+    // 初始化
+    window.onload = loadGame;
+</script>
+</body>
+</html>
